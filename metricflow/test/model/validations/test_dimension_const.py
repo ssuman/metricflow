@@ -7,24 +7,24 @@ from metricflow.model.objects.elements.measure import Measure, AggregationType
 from metricflow.model.objects.metric import Metric, MetricType, MetricTypeParams
 from metricflow.model.objects.user_configured_model import UserConfiguredModel
 from metricflow.model.validations.validator_helpers import ModelValidationException
-from metricflow.specs import MeasureReference, DimensionReference
+from metricflow.specs import DimensionReference
 from metricflow.time.time_granularity import TimeGranularity
 
 
 def test_incompatible_dimension_type() -> None:  # noqa:D
     with pytest.raises(ModelValidationException, match=r"type conflict for dimension"):
         dim_reference = DimensionReference(element_name="dim")
-        measure_reference = MeasureReference(element_name="measure")
+        measure_name = "measure"
         ModelValidator.checked_validations(
             UserConfiguredModel(
                 data_sources=[
                     DataSource(
-                        reference="dim1",
-                        sql_query=f"SELECT {dim_reference.element_name}, {measure_reference.element_name} FROM bar",
-                        measures=[Measure(reference=measure_reference, agg=AggregationType.SUM)],
+                        name="dim1",
+                        sql_query=f"SELECT {dim_reference.element_name}, {measure_name} FROM bar",
+                        measures=[Measure(name=measure_name, agg=AggregationType.SUM)],
                         dimensions=[
                             Dimension(
-                                reference=dim_reference,
+                                name=dim_reference,
                                 type=DimensionType.TIME,
                                 type_params=DimensionTypeParams(
                                     is_primary=True,
@@ -35,37 +35,38 @@ def test_incompatible_dimension_type() -> None:  # noqa:D
                         mutability=Mutability(type=MutabilityType.IMMUTABLE),
                     ),
                     DataSource(
-                        reference="categoricaldim",
+                        name="categoricaldim",
                         sql_query="SELECT foo FROM bar",
-                        dimensions=[Dimension(reference=dim_reference, type=DimensionType.CATEGORICAL)],
+                        dimensions=[Dimension(name=dim_reference, type=DimensionType.CATEGORICAL)],
                         mutability=Mutability(type=MutabilityType.IMMUTABLE),
                     ),
                 ],
                 metrics=[
                     Metric(
-                        reference=measure_reference.element_name,
+                        name=measure_name,
                         type=MetricType.MEASURE_PROXY,
-                        type_params=MetricTypeParams(measures=[measure_reference]),
+                        type_params=MetricTypeParams(measures=[measure_name]),
                     )
                 ],
                 materializations=[],
             )
         )
 
+
 def test_incompatible_dimension_is_partition() -> None:  # noqa:D
     with pytest.raises(ModelValidationException, match=r"conflicting is_partition attribute for dimension"):
         dim_ref1 = DimensionReference(element_name="dim1")
-        measure_reference = MeasureReference(element_name="measure")
+        measure_name = "measure"
         ModelValidator.checked_validations(
             UserConfiguredModel(
                 data_sources=[
                     DataSource(
-                        reference="dim1",
-                        sql_query=f"SELECT {dim_ref1.element_name}, {measure_reference.element_name} FROM bar",
-                        measures=[Measure(reference=measure_reference, agg=AggregationType.SUM)],
+                        name="dim1",
+                        sql_query=f"SELECT {dim_ref1.element_name}, {measure_name} FROM bar",
+                        measures=[Measure(name=measure_name, agg=AggregationType.SUM)],
                         dimensions=[
                             Dimension(
-                                reference=dim_ref1,
+                                name=dim_ref1,
                                 type=DimensionType.TIME,
                                 is_partition=True,
                                 type_params=DimensionTypeParams(
@@ -77,11 +78,11 @@ def test_incompatible_dimension_is_partition() -> None:  # noqa:D
                         mutability=Mutability(type=MutabilityType.IMMUTABLE),
                     ),
                     DataSource(
-                        reference="dim2",
+                        name="dim2",
                         sql_query="SELECT foo1 FROM bar",
                         dimensions=[
                             Dimension(
-                                reference=dim_ref1,
+                                name=dim_ref1,
                                 type=DimensionType.TIME,
                                 is_partition=False,
                                 type_params=DimensionTypeParams(
@@ -94,9 +95,9 @@ def test_incompatible_dimension_is_partition() -> None:  # noqa:D
                 ],
                 metrics=[
                     Metric(
-                        reference=measure_reference.element_name,
+                        name=measure_name,
                         type=MetricType.MEASURE_PROXY,
-                        type_params=MetricTypeParams(measures=[measure_reference]),
+                        type_params=MetricTypeParams(measures=[measure_name]),
                     )
                 ],
                 materializations=[],
