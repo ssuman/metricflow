@@ -7,24 +7,23 @@ from metricflow.model.objects.elements.measure import Measure, AggregationType
 from metricflow.model.objects.metric import Metric, MetricType, MetricTypeParams
 from metricflow.model.objects.user_configured_model import UserConfiguredModel
 from metricflow.model.validations.validator_helpers import ModelValidationException
-from metricflow.specs import DimensionReference
 from metricflow.time.time_granularity import TimeGranularity
 
 
 def test_incompatible_dimension_type() -> None:  # noqa:D
     with pytest.raises(ModelValidationException, match=r"type conflict for dimension"):
-        dim_reference = DimensionReference(element_name="dim")
+        dim_name = "dim"
         measure_name = "measure"
         ModelValidator.checked_validations(
             UserConfiguredModel(
                 data_sources=[
                     DataSource(
                         name="dim1",
-                        sql_query=f"SELECT {dim_reference.element_name}, {measure_name} FROM bar",
+                        sql_query=f"SELECT {dim_name}, {measure_name} FROM bar",
                         measures=[Measure(name=measure_name, agg=AggregationType.SUM)],
                         dimensions=[
                             Dimension(
-                                name=dim_reference,
+                                name=dim_name,
                                 type=DimensionType.TIME,
                                 type_params=DimensionTypeParams(
                                     is_primary=True,
@@ -37,7 +36,7 @@ def test_incompatible_dimension_type() -> None:  # noqa:D
                     DataSource(
                         name="categoricaldim",
                         sql_query="SELECT foo FROM bar",
-                        dimensions=[Dimension(name=dim_reference, type=DimensionType.CATEGORICAL)],
+                        dimensions=[Dimension(name=dim_name, type=DimensionType.CATEGORICAL)],
                         mutability=Mutability(type=MutabilityType.IMMUTABLE),
                     ),
                 ],
@@ -55,18 +54,18 @@ def test_incompatible_dimension_type() -> None:  # noqa:D
 
 def test_incompatible_dimension_is_partition() -> None:  # noqa:D
     with pytest.raises(ModelValidationException, match=r"conflicting is_partition attribute for dimension"):
-        dim_ref1 = DimensionReference(element_name="dim1")
+        dim_name = "dim1"
         measure_name = "measure"
         ModelValidator.checked_validations(
             UserConfiguredModel(
                 data_sources=[
                     DataSource(
                         name="dim1",
-                        sql_query=f"SELECT {dim_ref1.element_name}, {measure_name} FROM bar",
+                        sql_query=f"SELECT {dim_name}, {measure_name} FROM bar",
                         measures=[Measure(name=measure_name, agg=AggregationType.SUM)],
                         dimensions=[
                             Dimension(
-                                name=dim_ref1,
+                                name=dim_name,
                                 type=DimensionType.TIME,
                                 is_partition=True,
                                 type_params=DimensionTypeParams(
@@ -82,7 +81,7 @@ def test_incompatible_dimension_is_partition() -> None:  # noqa:D
                         sql_query="SELECT foo1 FROM bar",
                         dimensions=[
                             Dimension(
-                                name=dim_ref1,
+                                name=dim_name,
                                 type=DimensionType.TIME,
                                 is_partition=False,
                                 type_params=DimensionTypeParams(
