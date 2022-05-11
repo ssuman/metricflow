@@ -51,6 +51,8 @@ class DataSource(HashableBaseModel, ParseableObject):
     """Describes a data source"""
 
     name: str
+    description: Optional[str]
+    owners: Optional[List[str]]
     sql_table: Optional[str]
     sql_query: Optional[str]
     dbt_model: Optional[str]
